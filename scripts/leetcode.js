@@ -23,7 +23,7 @@ const languages = {
   Scala: '.scala',
   Swift: '.swift',
   TypeScript: '.ts',
-}
+};
 
 /* Commit messages */
 const readmeMsg = 'Create README - LeetHub';
@@ -42,7 +42,7 @@ let uploadState = { uploading: false };
 
 /* Main function for uploading code to GitHub repo, and callback cb is called if success */
 const upload = (token, hook, code, problem, filename, sha, commitMsg, cb = undefined) => {
-  const URL = `https://api.github.com/repos/${hook}/contents/${problem}/${filename}`;
+  const URL = `https://api.github.com/repos/${hook}/contents/LeetCode/${difficulty}/${problem}/${filename}`;
 
   /* Define Payload */
   let data = {
@@ -138,7 +138,7 @@ const update = (
   shouldPreprendDiscussionPosts,
   cb = undefined,
 ) => {
-  const URL = `https://api.github.com/repos/${hook}/contents/${directory}/${filename}`;
+  const URL = `https://api.github.com/repos/${hook}/contents/LeetCode/${difficulty}/${problem}/${filename}`;
 
   let options = {
     method: 'GET',
@@ -157,12 +157,12 @@ const update = (
     .then(existingContent =>
       shouldPreprendDiscussionPosts
         ? // https://web.archive.org/web/20190623091645/https://monsur.hossa.in/2012/07/20/utf-8-in-javascript.html
-        // In order to preserve mutation of the data, we have to encode it, which is usually done in base64.
-        // But btoa only accepts ASCII 7 bit chars (0-127) while Javascript uses 16-bit minimum chars (0-65535).
-        // EncodeURIComponent converts the Unicode Points UTF-8 bits to hex UTF-8.
-        // Unescape converts percent-encoded hex values into regular ASCII (optional; it shrinks string size).
-        // btoa converts ASCII to base64.
-        btoa(unescape(encodeURIComponent(addition + existingContent)))
+          // In order to preserve mutation of the data, we have to encode it, which is usually done in base64.
+          // But btoa only accepts ASCII 7 bit chars (0-127) while Javascript uses 16-bit minimum chars (0-65535).
+          // EncodeURIComponent converts the Unicode Points UTF-8 bits to hex UTF-8.
+          // Unescape converts percent-encoded hex values into regular ASCII (optional; it shrinks string size).
+          // btoa converts ASCII to base64.
+          btoa(unescape(encodeURIComponent(addition + existingContent)))
         : btoa(unescape(encodeURIComponent(existingContent))),
     )
     .then(newContent =>
@@ -248,8 +248,7 @@ function uploadGit(
 
 /* Gets updated GitHub data for the specific file in repo in question */
 async function getUpdatedData(token, hook, directory, filename) {
-  const URL = `https://api.github.com/repos/${hook}/contents/${directory}/${filename}`;
-
+  const URL = `https://api.github.com/repos/${hook}/contents/LeetCode/${difficulty}/${problem}/${filename}`;
   let options = {
     method: 'GET',
     headers: {
@@ -338,7 +337,7 @@ function LeetCodeV1() {
   this.progressSpinnerElementClass = 'leethub_progress';
   this.injectSpinnerStyle();
 }
-LeetCodeV1.prototype.init = async function () { };
+LeetCodeV1.prototype.init = async function () {};
 /* Function for finding and parsing the full code. */
 /* - At first find the submission details url. */
 /* - Then send a request for the details page. */
@@ -740,7 +739,7 @@ LeetCodeV2.prototype.getLanguageExtension = function () {
 
   return languages[lang];
 };
-LeetCodeV2.prototype.getNotesIfAny = function () { };
+LeetCodeV2.prototype.getNotesIfAny = function () {};
 LeetCodeV2.prototype.getProblemNameSlug = function () {
   const slugTitle = this.submissionData.question.titleSlug;
   const qNum = this.submissionData.question.questionId;
@@ -771,7 +770,7 @@ LeetCodeV2.prototype.parseStats = function () {
   }
 
   // Doesn't work unless we wait for page to finish loading.
-  setTimeout(() => { }, 1000);
+  setTimeout(() => {}, 1000);
   const probStats = document.getElementsByClassName('flex w-full pb-4')[0].innerText.split('\n');
   if (!checkElem(probStats)) {
     return null;
@@ -875,10 +874,10 @@ LeetCodeV2.prototype.insertToAnchorElement = function (elem) {
     return;
   }
 
-  if (checkElem(document.getElementsByClassName('ml-auto flex items-center space-x-4'))) {
-    const target = document.getElementsByClassName('ml-auto flex items-center space-x-4')[0];
+  if (checkElem(document.querySelector('div.relative.ml-auto.flex.items-center.gap-3'))) {
+    const target = document.querySelector('div.relative.ml-auto.flex.items-center.gap-3');
     elem.className = 'runcode-wrapper__8rXm';
-    if (target.childNodes.length > 0) target.childNodes[0].prepend(elem);
+    if (target.childNodes.length > 0) target.prepend(elem);
   }
 };
 LeetCodeV2.prototype.markUploaded = function () {
@@ -924,13 +923,15 @@ chrome.storage.local.get('isSync', data => {
   }
 });
 
-let leetCode;
-const isLeetCodeV2 = document.getElementById('chakra-script') != null;
-if (!isLeetCodeV2) {
-  leetCode = new LeetCodeV1();
-} else {
-  leetCode = new LeetCodeV2();
-}
+let leetCode = new LeetCodeV2();
+// const isLeetCodeV2 = document.getElementById('chakra-script') != null;
+// if (!isLeetCodeV2) {
+//   console.log('leethub is V1');
+//   leetCode = new LeetCodeV1();
+// } else {
+//   console.log('leethub is V2');
+//   leetCode = new LeetCodeV2();
+// }
 
 const loader = () => {
   let iterations = 0;
@@ -1028,7 +1029,13 @@ const loader = () => {
 
 function handleCtrlEnter(event) {
   if (event.key === 'Enter' && event.ctrlKey) {
-    loader()
+    loader();
+  }
+}
+
+function handleCmdEnter(event) {
+  if (event.key === 'Enter' && event.metaKey) {
+    loader();
   }
 }
 
@@ -1038,9 +1045,14 @@ function handleCtrlEnter(event) {
 setTimeout(() => {
   const v1SubmitBtn = document.querySelector('[data-cy="submit-code-btn"]');
   const v2SubmitBtn = document.querySelector('[data-e2e-locator="console-submit-button"]');
-  const submitBtn = !isLeetCodeV2 ? v1SubmitBtn : v2SubmitBtn;
+  const submitBtn = v2SubmitBtn;
   submitBtn.addEventListener('click', loader);
 
-  const textarea = document.getElementsByTagName('textarea')[0]
-  textarea.addEventListener('keydown', handleCtrlEnter)
+  const textarea = document.getElementsByTagName('textarea')[0];
+  const userAgent = navigator.userAgent;
+  if (userAgent.match(/Mac/) !== -1) {
+    document.addEventListener('keydown', handleCmdEnter);
+  } else {
+    textarea.addEventListener('keydown', handleCtrlEnter);
+  }
 }, 2000);
